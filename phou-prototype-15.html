@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PHOU 프로토타입</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#ECEDEF;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;color:#111111;letter-spacing:-0.01em;display:flex;justify-content:center;align-items:center;min-height:100vh}
+button,input{font-family:inherit;color:inherit}
+.phone{width:390px;height:844px;background:#FFFFFF;border-radius:44px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(17,17,17,0.15)}
+@media (max-width:430px){body{background:#FFFFFF;display:block}.phone{width:100%;height:100vh;border-radius:0;box-shadow:none}}
+.screen{position:absolute;top:0;left:0;right:0;bottom:0;display:none}
+.screen.on{display:block}
+.scroll{position:absolute;top:0;left:0;right:0;bottom:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 20px 112px}
+.hdr{position:-webkit-sticky;position:sticky;top:0;z-index:5;background:#FFFFFF;margin:0 -20px;padding:56px 20px 16px;transition:box-shadow .2s}
+.hdr>*+*{margin-top:20px}
+.hdr.lift{box-shadow:0 1px 0 #E6E7EA}
+.scroll::-webkit-scrollbar{display:none}
+.stack{display:flex;flex-direction:column}
+.g8>*+*{margin-top:8px}.g12>*+*{margin-top:12px}.g16>*+*{margin-top:16px}.g24>*+*{margin-top:24px}
+h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-0.02em;line-height:1.3}
+h2{margin:0;font-size:18px;font-weight:600}
+.sub{margin:6px 0 0;font-size:15px;color:#6E6E73}
+.small{font-size:13px;color:#6E6E73}
+.label{font-size:15px;font-weight:600}
+.iconbtn{width:44px;height:44px;border-radius:999px;border:none;background:#F2F3F5;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.chip{height:40px;padding:0 18px;border-radius:999px;border:none;background:#F2F3F5;color:#6E6E73;font-size:14px;font-weight:500;cursor:pointer;margin-right:8px}
+.chip.sel{background:#111111;color:#FFFFFF;font-weight:600}
+.tag{display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:999px;background:#F2F3F5;color:#6E6E73;font-size:13px;margin-right:8px}
+.field{height:56px;border-radius:20px;border:none;background:#F2F3F5;padding:0 20px;font-size:15px;width:100%;outline:none}
+.field::placeholder{color:#8E8E93}
+.box{border-radius:20px;background:#F2F3F5}
+.row{display:flex;align-items:center}
+.between{justify-content:space-between}
+.sw{flex:none;width:52px;height:32px;border-radius:999px;border:none;padding:3px;cursor:pointer;background:#E6E7EA;display:flex;justify-content:flex-start;transition:background .2s}
+.sw span{width:26px;height:26px;border-radius:999px;background:#FFFFFF;box-shadow:0 1px 3px rgba(17,17,17,0.2)}
+.sw.on{background:#111111;justify-content:flex-end}
+.bottom{position:absolute;left:0;right:0;bottom:0;padding:12px 20px 24px;background:#FFFFFF}
+.main{width:100%;height:56px;border-radius:999px;border:none;background:#111111;color:#FFFFFF;font-size:16px;font-weight:600;cursor:pointer}
+.main:disabled{background:#C7C7CC;cursor:default}
+.ghost{width:100%;height:52px;border-radius:999px;border:1px solid #E6E7EA;background:#FFFFFF;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ghost svg{margin-right:8px}
+.ghost.ai{background:#111111;color:#FFFFFF;border-color:#111111;font-weight:600}
+.card{position:relative;border-radius:24px;overflow:hidden;background:#F2F3F5;box-shadow:0 12px 32px rgba(17,17,17,0.08)}
+.card .scene{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+.glass{position:absolute;left:10px;right:10px;bottom:10px;padding:14px 16px;border-radius:16px;background:rgba(17,17,17,0.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#FFFFFF}
+.glass b{display:block;font-size:17px;font-weight:600}
+.glass span{display:block;font-size:13px;color:rgba(255,255,255,0.88);margin-top:2px}
+.grid2{display:flex;flex-wrap:wrap;justify-content:space-between}
+.grid2 .card{width:calc(50% - 6px);height:200px;margin-top:12px}
+.grid2 .glass{left:8px;right:8px;bottom:8px;padding:10px 12px;border-radius:14px}
+.grid2 .glass b{font-size:15px}.grid2 .glass span{font-size:12px}
+.count{position:absolute;top:12px;right:12px;height:28px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,0.9);font-size:12px;font-weight:600;display:flex;align-items:center}
+nav.tab{position:absolute;left:20px;right:20px;bottom:24px;height:68px;border-radius:999px;background:rgba(255,255,255,0.94);border:1px solid #E6E7EA;box-shadow:0 16px 40px rgba(17,17,17,0.10);display:flex;align-items:center;justify-content:space-around;padding:0 6px}
+nav.tab button{border:none;background:transparent;color:#8E8E93;display:flex;flex-direction:column;align-items:center;font-size:11px;cursor:pointer;width:60px;height:56px;justify-content:center}
+nav.tab button span{margin-top:3px;color:#6E6E73}
+nav.tab button.cur{color:#111111}nav.tab button.cur span{color:#111111;font-weight:600}
+nav.tab .plus{width:52px;height:52px;border-radius:999px;background:#111111;color:#FFFFFF}
+.opt{height:64px;padding:0 16px;margin-top:8px}
+.opt .ic{flex:none;width:40px;height:40px;border-radius:999px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;margin-right:12px}
+.opt .nm{flex-grow:1;font-size:15px;font-weight:500}
+.mode{width:100%;border:1.5px solid #E6E7EA;background:#FFFFFF;border-radius:20px;padding:18px 20px;display:flex;align-items:flex-start;text-align:left;cursor:pointer}
+.mode.sel{border-color:#111111}
+.mode .dot{flex:none;width:22px;height:22px;border-radius:999px;border:2px solid #C7C7CC;margin:1px 12px 0 0;position:relative}
+.mode.sel .dot{border-color:#111111}
+.mode.sel .dot:after{content:"";position:absolute;top:4px;left:4px;width:10px;height:10px;border-radius:999px;background:#111111}
+.mode .txt{display:block;flex-grow:1}
+.mode b{display:block;font-size:16px;font-weight:600}
+.mode em{font-style:normal;font-size:11px;font-weight:600;background:#111111;color:#FFFFFF;border-radius:999px;padding:3px 8px;margin-left:8px;vertical-align:2px}
+.mode .txt>span{display:block;font-size:13px;color:#6E6E73;margin-top:4px;line-height:1.5}
+.mode .tags{margin-top:12px}
+.mode .tags i{font-style:normal;display:inline-block;height:28px;line-height:28px;padding:0 12px;border-radius:999px;background:#F2F3F5;font-size:12px;color:#111111;margin:0 6px 6px 0}
+.photos{display:flex;flex-wrap:wrap;margin:0 -3px}
+.ph{position:relative;width:calc(33.333% - 6px);margin:3px;padding-top:calc(33.333% - 6px);border:none;border-radius:14px;overflow:hidden;background:#F2F3F5;cursor:pointer}
+.ph .scene{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+.ph.off .scene{opacity:.4}
+.ph .ck{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:999px;background:#111111;border:2px solid #FFFFFF;display:flex;align-items:center;justify-content:center}
+.ph.off .ck{background:rgba(17,17,17,0.25)}.ph.off .ck svg{display:none}
+.center{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 32px}
+.bigic{width:88px;height:88px;border-radius:999px;background:#F2F3F5;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.spin{width:56px;height:56px;border-radius:999px;border:3px solid #E6E7EA;border-top-color:#111111;animation:spin .9s linear infinite;margin-bottom:20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bar{width:220px;height:6px;border-radius:999px;background:#F2F3F5;overflow:hidden;margin-top:20px}
+.bar i{display:block;height:6px;width:8%;background:#111111;border-radius:999px}
+.bar i.go{animation:grow 2s ease-out forwards}
+@keyframes grow{to{width:100%}}
+.link{border:none;background:transparent;font-size:14px;text-decoration:underline;cursor:pointer;height:44px;padding:0}
+.qr{width:160px;height:160px;display:flex;flex-wrap:wrap}
+.qr i{width:4.7619%;height:4.7619%;display:block}
+.share{border:none;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;cursor:pointer;margin-right:24px}
+.share .c{width:56px;height:56px;border-radius:999px;background:#F2F3F5;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.toast{position:absolute;z-index:30;left:50%;bottom:112px;transform:translateX(-50%);height:44px;padding:0 20px;border-radius:999px;background:#111111;color:#FFFFFF;font-size:14px;display:none;align-items:center;white-space:nowrap}
+.toast.on{display:flex}
+.note{display:flex;align-items:center;justify-content:center;margin:0 0 12px;font-size:13px;color:#6E6E73}
+.note svg{margin-right:6px;flex:none}
+.textbtn{display:block;width:100%;height:44px;border:none;background:transparent;font-size:14px;color:#6E6E73;cursor:pointer;margin-top:4px}
+.fill .scene{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+.ring{position:relative;width:168px;height:168px}
+.ringtxt{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ringtxt b{font-size:42px;font-weight:700;letter-spacing:-0.03em;line-height:1}
+.ringtxt span{font-size:13px;color:#6E6E73;margin-top:6px}
+.steps{list-style:none;padding:0;margin:24px 0 0;text-align:left}
+.steps li{display:flex;align-items:center;font-size:14px;color:#8E8E93;height:34px}
+.steps li:before{content:"";width:18px;height:18px;border-radius:999px;border:2px solid #E6E7EA;margin-right:10px;box-sizing:border-box;flex:none}
+.steps li.on{color:#111111;font-weight:500}
+.steps li.on:before{border-color:#111111;border-top-color:#E6E7EA;animation:spin .8s linear infinite}
+.steps li.done{color:#111111}
+.steps li.done:before{border-color:#111111;background:#111111 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 4.5 4.5L19 7'/%3E%3C/svg%3E") center/10px no-repeat}
+.okchip{display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:999px;background:#F2F3F5;font-size:13px;font-weight:600;margin-bottom:12px}
+.okchip svg{margin-right:6px}
+.ticket{border-radius:28px;background:#FFFFFF;box-shadow:0 20px 48px rgba(17,17,17,0.10);border:1px solid #E6E7EA;overflow:hidden;position:relative}
+.ticket .cover{position:relative;height:184px;background:#F2F3F5}
+.perf{position:relative;height:24px}
+.perf:before{content:"";position:absolute;left:24px;right:24px;top:11px;border-top:2px dashed #E6E7EA}
+.perf i{position:absolute;top:0;width:24px;height:24px;border-radius:999px;background:#FFFFFF;border:1px solid #E6E7EA}
+.perf i.l{left:-13px}.perf i.r{right:-13px}
+.tbody{display:flex;align-items:center;padding:2px 20px 20px}
+.tiles{display:flex}
+.tile{flex:1;height:84px;border:none;border-radius:20px;background:#F2F3F5;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;cursor:pointer}
+.tile+.tile{margin-left:8px}.tile svg{margin-bottom:8px}
+.exp{display:flex;align-items:center;justify-content:center;font-size:13px;color:#6E6E73}
+.exp svg{margin-right:6px}.exp button{border:none;background:transparent;font-size:13px;font-weight:600;text-decoration:underline;cursor:pointer;padding:0 0 0 6px;height:44px}
+.avs{display:flex;flex:none}
+.av{width:36px;height:36px;border-radius:999px;border:2px solid #FFFFFF;background:#E6E7EA;overflow:hidden;position:relative;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.av+.av{margin-left:-10px}
+.av img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+.pill{height:36px;padding:0 14px;border-radius:999px;border:1px solid #E6E7EA;background:#FFFFFF;font-size:13px;font-weight:600;cursor:pointer;flex:none}
+.hscroll{display:flex;overflow-x:auto;margin:0 -20px;padding:4px 20px 8px;scrollbar-width:none}
+.hscroll::-webkit-scrollbar{display:none}
+.best{flex:none;width:156px;height:208px;margin-right:10px;position:relative;border-radius:22px;overflow:hidden;background:#F2F3F5}
+.badge{position:absolute;top:10px;left:10px;height:24px;padding:0 10px;border-radius:999px;background:#111111;color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;letter-spacing:.02em}
+.why{position:absolute;left:8px;right:8px;bottom:8px;padding:8px 10px;border-radius:12px;background:rgba(17,17,17,0.55);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#FFFFFF;font-size:12px;line-height:1.4}
+.cats{display:flex;flex-wrap:wrap;justify-content:space-between}
+.cat{width:calc(50% - 5px);margin-top:10px;border:none;border-radius:20px;background:#F2F3F5;padding:16px;text-align:left;cursor:pointer;display:flex;flex-direction:column}
+.cat .ci{width:36px;height:36px;border-radius:999px;background:#FFFFFF;display:flex;align-items:center;justify-content:center}
+.cat b{font-size:15px;font-weight:600;margin-top:14px}
+.cat span.v{font-size:13px;color:#6E6E73;margin-top:2px}
+.bundle{display:flex;align-items:center;width:100%;border:none;background:transparent;padding:10px 0;cursor:pointer;text-align:left}
+.stk{position:relative;width:66px;height:66px;flex:none;margin-right:14px}
+.stk .b,.stk .a{position:absolute;width:56px;height:56px;border-radius:14px;overflow:hidden;background:#F2F3F5}
+.stk .b{top:0;left:10px;opacity:.55}.stk .a{top:10px;left:0;border:2px solid #FFFFFF}
+.sheetwrap{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(17,17,17,0.4);display:none;z-index:20}
+.sheetwrap.on{display:block}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#FFFFFF;border-radius:28px 28px 0 0;padding:12px 20px 24px}
+.handle{width:40px;height:5px;border-radius:999px;background:#E6E7EA;margin:0 auto 16px}
+.rep{position:relative;height:280px;border-radius:24px;overflow:hidden;background:#F2F3F5;margin-top:16px}
+.thumbs{display:flex;overflow-x:auto;margin:12px -20px 16px;padding:4px 20px;scrollbar-width:none}
+.thumbs::-webkit-scrollbar{display:none}
+.th{flex:none;width:60px;height:60px;border-radius:14px;overflow:hidden;position:relative;border:none;padding:0;margin-right:8px;cursor:pointer;background:#F2F3F5}
+.th.sel{box-shadow:0 0 0 2.5px #FFFFFF,0 0 0 4.5px #111111}
+.th .ai{position:absolute;left:4px;bottom:4px;height:16px;padding:0 5px;border-radius:999px;background:#111111;color:#FFFFFF;font-size:9px;font-weight:700;display:flex;align-items:center}
+.state{position:fixed;top:16px;left:16px;font-size:12px;color:#6E6E73}
+.state select{font-size:12px;margin-left:4px}
+@media (max-width:430px){.state{display:none}}
+
+.bundlegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 16px}
+.bundlethumb{border:0;background:none;padding:0;cursor:pointer;position:relative;margin-top:6px}
+.bundlethumb:before,.bundlethumb:after{content:"";position:absolute;inset:-6px 8px 8px;background:#E6E7EA;border-radius:20px}
+.bundlethumb:after{inset:-3px 4px 4px;background:#F2F3F5}
+.bundleimage{display:block;position:relative;aspect-ratio:1;border-radius:20px;overflow:hidden;z-index:1;background:#F2F3F5}
+.photocount{position:absolute;right:8px;bottom:8px;background:white;border-radius:999px;padding:6px 10px;display:flex;gap:4px;align-items:center;font-size:12px;font-weight:600}
+.replabel{position:absolute;left:8px;top:8px;background:#111;color:white;padding:4px 8px;border-radius:999px;font-size:11px}
+.browsepeople{display:flex;gap:8px}.personpick{flex:1;background:#F2F3F5;border:1px solid transparent;border-radius:20px;padding:12px 4px;cursor:pointer;display:flex;align-items:center;flex-direction:column;gap:6px}.personpick.active{border-color:#111}.personpick img{width:48px;height:48px;object-fit:cover;border-radius:50%}.personpick b{font-size:12px}.personpick span{font-size:12px;color:#6E6E73}
+.samplemap{height:190px;position:relative;overflow:hidden;border-radius:24px;background:#F2F3F5}.samplemap>svg{width:100%;height:100%}.mapmarker{position:absolute;transform:translate(-50%,-50%);border:1px solid #E6E7EA;border-radius:999px;background:white;padding:8px 10px;font-size:12px;cursor:pointer;white-space:nowrap}.mapmarker.active{background:#111;color:white}.mapcaption{position:absolute;bottom:10px;left:12px;font-size:10px;color:#6E6E73}
+.timechart{display:flex;gap:12px;align-items:flex-end;border-radius:24px;background:#F2F3F5;padding:20px 16px}.timebar{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;border:0;background:none;cursor:pointer;font-size:12px}.timebar i{display:block;width:100%;background:#C7C7CC;border-radius:8px}.timebar.active i{background:#111}.timebar b{font-size:11px;color:#6E6E73}
+
+#s-album>.scroll,#s-share>.scroll{bottom:100px;padding-bottom:32px!important}
+#s-album>.bottom,#s-share>.bottom{height:100px;padding:12px 20px 24px;border-top:1px solid #E6E7EA;z-index:8}
+.bundlegrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 10px}.bundleimage{border-radius:14px}.photocount{right:5px;bottom:5px;padding:4px 6px;font-size:11px}.replabel{font-size:10px;padding:3px 6px;left:5px;top:5px}
+.inviteinfo{padding:20px 20px 0}.inviteinfo b{display:block;font-size:18px}.inviteinfo>span{display:block;font-size:13px;color:#6E6E73;margin-top:6px}.ticket{flex-shrink:0}.tbody{padding:24px 20px;min-height:160px}.qr{display:grid!important;grid-template-columns:repeat(21,1fr);grid-template-rows:repeat(21,1fr);padding:8px;background:white;box-sizing:content-box!important}.qr i{width:auto;height:auto}
+.mapmarker{border-radius:50%;white-space:normal;box-shadow:0 0 0 8px rgba(17,17,17,.04);font-weight:600}.maplegend{position:absolute;left:12px;top:12px;font-size:11px;background:white;padding:6px 10px;border-radius:999px}
+.selectcheck{position:absolute;right:7px;top:7px;z-index:3;width:24px;height:24px;border:2px solid white;border-radius:50%;background:rgba(17,17,17,.35);color:white;display:flex;align-items:center;justify-content:center;font-size:14px}.photochosen .selectcheck{background:#111}.photochosen{outline:2px solid #111;outline-offset:-2px}
+.selectiontools{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:8px}.selectiontools button{border:1px solid #E6E7EA;background:white;border-radius:999px;padding:8px 12px;cursor:pointer;font-size:12px}
+.sheet{max-height:90%;overflow:auto}.sheet .handle{display:none}.sheet .rep{height:240px}
+
+#eventStart,#eventEnd{font:inherit;font-size:13px;border:0;background:transparent;max-width:240px;min-width:0;padding:8px 0}#dateError{margin:0;color:#111}.importreason{position:absolute;bottom:6px;left:6px;background:#111;color:white;padding:3px 6px;font-size:10px;border-radius:999px}.qr{display:block!important;width:112px!important;height:112px!important;overflow:visible;flex-shrink:0}.qr svg{display:block;width:100%;height:100%}.tbody{align-items:center;gap:12px}.tbody>div+div{margin-left:0!important}.ticket{overflow:visible}.inviteinfo>span{line-height:1.6}.sheetwrap{z-index:25}button:focus-visible{outline:2px solid #111;outline-offset:3px}
+
+#albChips{display:flex;gap:6px}#albChips .chip{margin-right:0;padding:0 12px;font-size:12px;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="state">사진 불러오기 상태
+<select id="scenario"><option value="auto">자동(로딩→결과)</option><option value="empty">빈 상태</option><option value="denied">접근 거부</option></select>
+</div>
+
+<div class="phone">
+
+<!-- 1. 홈 -->
+<section class="screen on" id="s-home" aria-label="홈">
+<div class="scroll stack g24" style="padding-bottom:128px">
+<div class="hdr">
+<div class="row between">
+<span style="font-size:20px;font-weight:800;letter-spacing:-0.01em">PHOU</span>
+<div class="row"><button class="iconbtn" aria-label="알림" style="margin-right:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
+<button class="iconbtn" aria-label="내 프로필" style="background:#111;color:#fff;font-size:14px;font-weight:600;position:relative;overflow:hidden">MJ<img src="https://picsum.photos/id/64/120/120" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" onerror="this.parentNode.removeChild(this)"></button></div>
+</div>
+<h1 style="margin-top:16px;font-size:24px;white-space:nowrap">오늘도, 좋은 순간 함께해요</h1>
+<div id="chips"></div>
+</div>
+<div>
+<div class="row" style="align-items:baseline"><h2>내 그룹</h2><span class="small" id="gcount" style="margin-left:8px"></span></div>
+<div id="cards"></div>
+</div>
+</div>
+<nav class="tab" aria-label="하단 메뉴">
+<button class="cur"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg><span>홈</span></button>
+<button><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg><span>전체 사진</span></button>
+<button class="plus" aria-label="새 그룹 만들기" onclick="go('create')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+<button><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>내 사진</span></button>
+<button><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>설정</span></button>
+</nav>
+</section>
+
+<!-- 2. 폴더 만들기 -->
+<section class="screen" id="s-create" aria-label="이벤트 폴더 만들기">
+<div class="scroll stack g24">
+<div class="hdr">
+<button class="iconbtn" aria-label="뒤로 가기" onclick="go('home')">BACK</button>
+<div><h1>이벤트 폴더 만들기</h1><p class="sub">함께 찍은 순간을 한 곳에 모아요</p></div>
+</div>
+<div class="stack g8">
+<label class="label" for="fname">폴더 이름</label>
+<input class="field" id="fname" maxlength="20" placeholder="예) 동아리 MT, 제주도 여행">
+<span class="small" id="flen" style="align-self:flex-end">0/20</span>
+</div>
+<div class="stack g8">
+<span class="label">이벤트 기간</span>
+<div class="box" style="overflow:hidden">
+<div class="row between" style="height:56px;padding:0 20px"><span class="small" style="font-size:14px">시작</span><input id="eventStart" type="datetime-local" value="2026-11-12T14:00" aria-label="시작 날짜와 시간"></div>
+<div style="height:1px;background:#E6E7EA;margin:0 20px"></div>
+<div class="row between" style="height:56px;padding:0 20px"><span class="small" style="font-size:14px">종료</span><input id="eventEnd" type="datetime-local" value="2026-11-13T11:00" aria-label="종료 날짜와 시간"></div>
+</div>
+</div>
+<p id="dateError" role="alert" class="small"></p><div class="stack g8">
+<label class="label" for="place">장소 <span style="font-weight:400;color:#6E6E73">(선택)</span></label>
+<input class="field" id="place" placeholder="예) 제주도, 홍대">
+</div>
+<div class="box row between" style="padding:18px 20px">
+<div style="margin-right:16px"><div class="label">기간 내 사진 자동 불러오기</div><div class="small" style="margin-top:4px;line-height:1.5">이벤트 기간에 촬영한 사진을 자동으로 불러와요</div></div>
+<button class="sw on" role="switch" aria-checked="true" aria-label="기간 내 사진 자동 불러오기" onclick="flip(this)"><span></span></button>
+</div>
+</div>
+<div class="bottom"><button class="main" id="next1" disabled onclick="go('options')">다음</button></div>
+</section>
+
+<!-- 3. 공유 옵션 -->
+<section class="screen" id="s-options" aria-label="사진 공유 옵션">
+<div class="scroll stack g24" style="padding-bottom:150px">
+<div class="hdr">
+<button class="iconbtn" aria-label="뒤로 가기" onclick="go('create')">BACK</button>
+<div><h1>어떤 사진을 공유할까요?</h1><p class="sub">자동으로 불러올 때 제외할 사진을 골라요</p></div>
+</div>
+<div class="stack g12" role="radiogroup" aria-label="사진을 빼는 방식">
+<button class="mode" id="mode-ai" role="radio" onclick="setMode(true)">
+<span class="dot"></span>
+<span class="txt"><b>AI에게 맡기기<em>추천</em></b><span>추천 제외 기준으로 후보를 정리해요. 다음 화면에서 다시 선택할 수 있어요</span>
+<span class="tags" id="ai-tags"><i>흐릿한 사진</i><i>비슷한 사진은 1장만</i><i>스크린샷</i><i>나만 나온 사진</i></span></span>
+</button>
+<button class="mode" id="mode-me" role="radio" onclick="setMode(false)">
+<span class="dot"></span>
+<span class="txt"><b>직접 고르기</b><span>내가 제외 기준을 설정해요. 사진 선택은 다음 화면에서 해요</span></span>
+</button>
+<div id="opts"></div>
+</div>
+</div>
+<div class="bottom"><p class="note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6E6E73" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6Z"/><path d="m9 12 2 2 4-4"/></svg>공유하기 전에 사진을 한 번 더 확인할 수 있어요</p><button class="main" onclick="go('import')">다음</button></div>
+</section>
+
+<!-- 4. 사진 불러오기 -->
+<section class="screen" id="s-import" aria-label="이벤트 기간 사진 불러오기">
+<div id="imp-loading" class="center" role="status">
+<div class="ring">
+<svg width="168" height="168" viewBox="0 0 168 168" aria-hidden="true"><circle cx="84" cy="84" r="76" fill="none" stroke="#F2F3F5" stroke-width="8"/><circle id="ringbar" cx="84" cy="84" r="76" fill="none" stroke="#111111" stroke-width="8" stroke-linecap="round" stroke-dasharray="477.5" stroke-dashoffset="477.5" transform="rotate(-90 84 84)"/></svg>
+<div class="ringtxt"><b id="ringnum">0</b><span>장 찾았어요</span></div>
+</div>
+<h2 style="margin-top:28px">이벤트 기간 사진을 모으고 있어요</h2>
+<p class="sub">11.12 오후 2:00 – 11.13 오전 11:00</p>
+<ul class="steps" id="steps"><li>기간 안에 찍은 사진 찾기</li><li>흐릿한 사진·스크린샷 빼기</li><li>비슷한 사진 묶기</li></ul>
+</div>
+<div id="imp-result" style="display:none">
+<div class="scroll stack g16" style="padding-bottom:170px">
+<div class="hdr">
+<button class="iconbtn" aria-label="뒤로 가기" onclick="go('options')">BACK</button>
+<div><h1 id="foundTitle">사진 86장을 찾았어요</h1><p class="sub" id="foundSub">기간 내 사진을 찾은 뒤 옵션에 따라 공유 후보를 골랐어요</p></div>
+</div>
+<div id="excludeTags"></div>
+<div class="row between"><span class="label"><span id="sel">74</span>장 선택됨</span><button class="link" id="excludedToggle" onclick="toggleExcluded()">제외된 사진 보기</button></div>
+<div class="row between"><button class="pill" onclick="document.getElementById('extraPhotos').click()">+ 사진 직접 추가</button><button class="link" onclick="go('create')">기간 수정</button></div><input id="extraPhotos" type="file" accept="image/*" multiple hidden><div class="photos" id="photos"></div>
+<p class="small" style="line-height:1.5;margin:8px 0">체크된 사진만 앨범에 담아요. 제외된 사진도 다시 선택할 수 있어요.</p>
+</div>
+<div class="bottom" style="border-top:1px solid #E6E7EA;padding-bottom:12px"><button class="main" id="sharebtn" onclick="go('share')">사진 74장으로 앨범 만들기</button><button class="textbtn" onclick="off={};go('share')">사진은 나중에 올릴게요</button></div>
+</div>
+<div id="imp-empty" style="display:none">
+<div style="padding:56px 20px 20px"><button class="iconbtn" aria-label="뒤로 가기" onclick="go('options')">BACK</button></div>
+<div class="center" style="top:120px">
+<div class="bigic"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.4" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4M9.5 14.5h5"/></svg></div>
+<h2>아직 이 시간대에 찍은 사진이 없어요</h2>
+<p class="sub" style="margin-bottom:24px">이벤트가 시작되면 찍은 사진이 여기에 모여요</p>
+<button class="main" style="width:auto;height:52px;padding:0 28px;font-size:15px">직접 추가하기</button>
+<button class="link" onclick="go('create')" style="margin-top:8px">기간 다시 설정하기</button>
+</div>
+</div>
+<div id="imp-denied" style="display:none">
+<div style="padding:56px 20px 20px"><button class="iconbtn" aria-label="뒤로 가기" onclick="go('options')">BACK</button></div>
+<div class="center" style="top:120px">
+<div class="bigic"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.4" stroke-linecap="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3M12 14.5v2.5"/></svg></div>
+<h2 style="line-height:1.45">사진 접근을 허용하면<br>자동으로 불러올 수 있어요</h2>
+<p class="sub" style="margin-bottom:24px">허용하지 않아도 직접 골라 공유할 수 있어요</p>
+<button class="main" style="height:52px;font-size:15px;margin-bottom:8px">직접 고르기</button>
+<button class="ghost">사진 접근 허용하기</button>
+</div>
+</div>
+</section>
+
+<!-- 5. 친구 초대 -->
+<section class="screen" id="s-share" aria-label="친구 초대">
+<div class="scroll stack g24" style="padding-bottom:120px">
+<div class="hdr">
+<div class="row between" style="align-items:flex-start">
+<div><span class="okchip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg>앨범을 만들었어요</span><h1>친구를 초대해요</h1><p class="sub">들어온 친구들과 사진을 함께 모아요</p></div>
+<button class="iconbtn" aria-label="닫기" onclick="finish()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+</div>
+</div>
+<div class="ticket">
+<div id="tcover" hidden></div>
+<div class="inviteinfo"><b id="qname">동아리 MT</b><span><span id="qdate">2026.11.12 – 11.13</span> · 사진 <span id="qcount" style="display:inline;margin:0">74</span>장</span></div>
+
+<div class="tbody">
+<div class="qr" id="qr" role="img" aria-label="앨범 초대 QR 코드" style="width:104px;height:104px;flex:none"></div>
+<div style="margin-left:18px"><div style="font-size:16px;font-weight:600;line-height:1.4">친구에게 QR을<br>보여주세요</div><div class="small" style="margin-top:6px">링크로도 초대할 수 있어요</div></div>
+</div>
+</div>
+<div class="row" style="height:56px;border-radius:999px;background:#F2F3F5;padding:0 6px 0 20px">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-right:10px"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>
+<span style="flex-grow:1;font-size:15px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">phou.app/a/mt-2026</span>
+<button onclick="copyLink()" style="height:44px;padding:0 20px;border-radius:999px;border:none;background:#111;color:#fff;font-size:14px;font-weight:600;cursor:pointer">복사</button>
+</div>
+<div class="tiles">
+<button class="tile" onclick="toast('카카오톡 공유 화면이 열려요')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6" stroke-linejoin="round"><path d="M12 4.5c-4.7 0-8.5 3-8.5 6.6 0 2.3 1.5 4.3 3.8 5.5L6.5 20l4-2.4c.5.1 1 .1 1.5.1 4.7 0 8.5-3 8.5-6.6S16.7 4.5 12 4.5Z"/></svg>카카오톡</button>
+<button class="tile" onclick="toast('인스타그램 DM으로 보내요')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17 7h.01"/></svg>인스타그램</button>
+<button class="tile" onclick="toast('다른 앱으로 공유해요')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"><path d="M6 12h.01M12 12h.01M18 12h.01"/></svg>더보기</button>
+</div>
+<div class="exp"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E6E73" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>링크는 2026.12.01까지 유효해요<button>변경</button></div>
+</div>
+<div class="bottom"><button class="main" onclick="finish()">앨범으로 가기</button></div>
+</section>
+
+<!-- 6. 앨범 (초대 이후) -->
+<section class="screen" id="s-album" aria-label="공유 앨범">
+<div class="scroll stack g24" style="padding-bottom:120px">
+<div class="hdr">
+<div class="row between"><button class="iconbtn" aria-label="뒤로 가기" onclick="albumBack()">BACK</button><div class="row" style="gap:8px"><button class="pill" onclick="go('share')">+ 초대하기</button></div></div>
+<div><h1 id="albTitle">동아리 MT</h1><p class="sub" id="albSub"></p></div>
+<div class="row"><div class="avs" id="avs"></div><div style="margin-left:10px"><div style="font-size:14px;font-weight:600" id="memText"></div><div class="small" id="memSub"></div></div></div>
+<div id="albChips"></div>
+</div>
+<div id="albBody"></div>
+</div>
+<div class="bottom"><button class="main" id="albSave" onclick="saveAlbumSelection()"></button></div>
+<div class="sheetwrap" id="sheet" onclick="if(event.target===this)closeSheet()">
+<div class="sheet" role="dialog" aria-label="장면 묶음">
+<div class="handle"></div>
+<div class="row between"><div><h2 id="shTitle"></h2><div class="small" id="shSub" style="margin-top:4px"></div></div><button class="iconbtn" aria-label="닫기" onclick="closeSheet()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+<div class="rep fill" id="shRep"></div>
+<div class="thumbs" id="shThumbs"></div>
+<button class="main" onclick="BUNDLES[sheetB].rep=sheetRep;closeSheet();renderAlbum();toast('대표 사진을 변경했어요')">이 사진을 대표로 선택</button>
+</div>
+</div>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+
+</div>
+
+<script>
+var BACK='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
+var CHECK='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg>';
+var PAL=[['#D5DEE2','#F4EFE6','#8EA5AD','#5E7882'],['#E2E4DC','#F4F1E8','#9AA58F','#66735C'],['#E6DDD5','#F6EEE6','#A89A8E','#7A6D63'],['#DCD9E3','#F3F1F6','#9C97AE','#6F6A83'],['#E4E0D3','#F7F3E8','#B3A98C','#857B5F'],['#D9E2DF','#F1F5F3','#93ABA3','#61796F']];
+/* ▼ 사진 바꾸는 곳: 아래 주소를 팀이 직접 찍은 사진 파일 경로(예: 'images/jeju.jpg')로 바꾸면 돼요.
+   지금은 Picsum(Unsplash 무료 사진) 샘플이라 인터넷이 연결돼 있어야 보여요. 안 불러와지면 단색 그림이 대신 보여요. */
+var ALBUM_PHOTOS={jeju:pic(1015,800,600),mt:pic(1011,600,600),gangneung:pic(1019,600,600),newAlbum:pic(1039,800,600)};
+var GRID_PHOTOS=[1011,1016,1005,1036,1043,64,1080,1044,65,292,1050,1027,425,10,1012,15,1051,1053];
+function pic(id,w,h){return 'https://picsum.photos/id/'+id+'/'+w+'/'+h;}
+function scene(p,sx,img){return '<svg class="scene" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="300" fill="'+p[0]+'"/><circle cx="'+(sx||292)+'" cy="92" r="36" fill="'+p[1]+'"/><path d="M0 190 C80 150 150 170 220 150 C290 130 340 150 400 140 L400 300 L0 300 Z" fill="'+p[2]+'"/><path d="M0 235 C90 215 170 245 260 225 C320 212 360 222 400 214 L400 300 L0 300 Z" fill="'+p[3]+'"/></svg>'+(img?'<img class="scene" src="'+img+'" alt="" loading="lazy" onerror="this.parentNode.removeChild(this)">':'');}
+function $(id){return document.getElementById(id);}
+var btns=document.querySelectorAll('.iconbtn');for(var i=0;i<btns.length;i++){if(btns[i].innerHTML==='BACK')btns[i].innerHTML=BACK;}
+
+/* 상태 */
+var albums=[
+ {name:'제주도 여행',date:'2026.10.03 – 10.05',people:'4명',count:'128장',st:'past',p:PAL[0],img:ALBUM_PHOTOS.jeju},
+ {name:'동아리 MT',date:'2026.11.12 – 11.13',people:'11명',count:'206장',st:'live',p:PAL[1],img:ALBUM_PHOTOS.mt},
+ {name:'강릉 가족여행',date:'2026.09.14',people:'5명',count:'64장',st:'past',p:PAL[2],img:ALBUM_PHOTOS.gangneung}];
+var filter='all',ai=true,off={};
+var opts=[['solo','나만 나온 사진 제외',true,'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M5 20c1.2-3.5 3.8-5.5 7-5.5s5.8 2 7 5.5'],['blur','흐릿한 사진 제외',true,'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z M8 12h8 M9 8.5h6 M9 15.5h6'],['similar','비슷한 사진은 대표사진만',true,'M8 4h10a2 2 0 0 1 2 2v10 M6 8h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z'],['shot','스크린샷 제외',true,'M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z M11 18h2'],['video','영상 제외',false,'M5 6h9a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z M16 10.5 21 8v8l-5-2.5']];
+
+/* 이동 */
+var timer,loadRun=0;
+function go(name){
+ var s=document.querySelectorAll('.screen');for(var i=0;i<s.length;i++)s[i].className='screen';
+ $('s-'+name).className='screen on';
+ var sc=$('s-'+name).querySelector('.scroll');if(sc)sc.scrollTop=0;
+ if(name==='import')startImport();
+}
+function finish(){
+ if(!justMade){var n=$('fname').value.trim()||'새 앨범';
+  justMade={name:n,date:'2026.11.12 – 11.13',people:'1명',members:1,total:countSel(),count:countSel()+'장',st:'live',p:PAL[3],img:ALBUM_PHOTOS.newAlbum,isNew:true};
+  albums.unshift(justMade);filter='all';renderHome();}
+ cur=justMade;albTab='ai';go('album');
+ if(cur.members<4){setTimeout(function(){cur.members=4;cur.people='4명';renderAlbum();renderHome();toast('지수님 외 2명이 앨범에 들어왔어요');},1400);}
+}
+function openAlbum(i){cur=albums[i];albTab='ai';go('album');}
+
+/* 홈 */
+function renderHome(){
+ var defs=[['all','전체'],['live','진행 중'],['past','지난 앨범']],h='';
+ for(var i=0;i<defs.length;i++)h+='<button class="chip'+(filter===defs[i][0]?' sel':'')+'" aria-pressed="'+(filter===defs[i][0])+'" onclick="filter=\''+defs[i][0]+'\';renderHome()">'+defs[i][1]+'</button>';
+ $('chips').innerHTML=h;
+ var list=[];for(i=0;i<albums.length;i++){albums[i]._i=i;if(filter==='all'||albums[i].st===filter)list.push(albums[i]);}
+ $('gcount').textContent=list.length+'개';
+ h='';
+ if(list.length){var a=list[0];h+='<div class="card" style="height:240px;margin-top:16px;cursor:pointer" onclick="openAlbum('+a._i+')">'+scene(a.p,null,a.img)+'<span class="count">'+(a.isNew?'NEW · ':'')+a.count+'</span><div class="glass"><b>'+esc(a.name)+'</b><span>'+a.date+' · '+a.people+'</span></div></div>';}
+ if(list.length>1){h+='<div class="grid2">';for(i=1;i<list.length;i++){a=list[i];h+='<div class="card" style="cursor:pointer" onclick="openAlbum('+a._i+')">'+scene(a.p,null,a.img)+'<div class="glass"><b>'+esc(a.name)+'</b><span>'+a.date+'</span><span>'+a.people+'</span></div></div>';}h+='</div>';}
+ $('cards').innerHTML=h;
+}
+function esc(s){return s.replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+/* 폴더 만들기 */
+function updName(){var v=$('fname').value;$('flen').textContent=v.length+'/20';$('next1').disabled=!v.trim();}
+$('fname').addEventListener('input',updName);
+function flip(b){var on=b.className.indexOf('on')<0;b.className='sw'+(on?' on':'');b.setAttribute('aria-checked',on);}
+
+/* 공유 옵션 */
+function renderOpts(){
+ var a=$('mode-ai'),m=$('mode-me');
+ a.className='mode'+(ai?' sel':'');a.setAttribute('aria-checked',ai);
+ m.className='mode'+(ai?'':' sel');m.setAttribute('aria-checked',!ai);
+ $('ai-tags').style.display=ai?'block':'none';
+ if(ai){$('opts').innerHTML='';return;}
+ var h='';
+ for(var i=0;i<opts.length;i++){var o=opts[i];
+ h+='<div class="box row opt"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="'+o[3]+'"/></svg></span><span class="nm">'+o[1]+'</span><button class="sw'+(o[2]?' on':'')+'" role="switch" aria-checked="'+o[2]+'" aria-label="'+o[1]+'" onclick="opts['+i+'][2]=!opts['+i+'][2];renderOpts()"><span></span></button></div>';}
+ $('opts').innerHTML=h;
+}
+function setMode(v){ai=v;renderOpts();}
+
+/* 사진 불러오기 */
+function countSel(){var n=0;for(var k in off)if(off[k])n++;return 74-n;}
+function renderPhotos(){
+ var h='';for(var i=0;i<18;i++){h+='<button class="ph'+(off[i]?' off':'')+'" aria-pressed="'+!off[i]+'" aria-label="사진 '+(i+1)+'" onclick="off['+i+']=!off['+i+'];renderPhotos()">'+scene(PAL[(i*5+1)%6],90+(i*73)%240,pic(GRID_PHOTOS[i],300,300))+'<span class="ck">'+CHECK+'</span></button>';}
+ $('photos').innerHTML=h;
+ var c=countSel();$('sel').textContent=c;$('qcount').textContent=c;
+ var b=$('sharebtn');b.disabled=c<=0;b.textContent=c>0?'사진 '+c+'장으로 앨범 만들기':'사진을 1장 이상 골라주세요';
+}
+function showImp(which){var ids=['loading','result','empty','denied'];for(var i=0;i<ids.length;i++)$('imp-'+ids[i]).style.display=(ids[i]===which?'block':'none');if(which==='loading')$('imp-loading').style.display='flex';}
+function startImport(){
+ clearTimeout(timer);var sc=$('scenario').value;
+ if(sc!=='auto'){showImp(sc);return;}
+ showImp('loading');
+ var t0=null,D=2600,C=477.5,lis=$('steps').getElementsByTagName('li'),run=++loadRun;
+ function step(ts){if(run!==loadRun)return;if(!t0)t0=ts;var p=Math.min(1,(ts-t0)/D),e=1-Math.pow(1-p,3);
+  $('ringbar').setAttribute('stroke-dashoffset',C*(1-e));$('ringnum').textContent=Math.round(86*e);
+  for(var i=0;i<lis.length;i++){lis[i].className=p>=(i+1)/3?'done':(p>=i/3?'on':'');}
+  if(p<1)requestAnimationFrame(step);else timer=setTimeout(function(){showImp('result');},450);}
+ requestAnimationFrame(step);
+}
+$('scenario').addEventListener('change',function(){go('import');});
+
+/* 링크·QR */
+function oldRenderQR(){
+ var N=21,F=[[0,0],[0,14],[14,0]],h='';
+ for(var r=0;r<N;r++)for(var c=0;c<N;c++){var on=null;
+  for(var f=0;f<3;f++){var r0=F[f][0],c0=F[f][1];if(r>=r0&&r<r0+7&&c>=c0&&c<c0+7){var dr=r-r0,dc=c-c0;on=dr===0||dr===6||dc===0||dc===6||(dr>=2&&dr<=4&&dc>=2&&dc<=4);}}
+  if(on===null){var near=(r<8&&c<8)||(r<8&&c>12)||(r>12&&c<8);on=near?false:((r*31+c*17+r*c*7)%11)<5;}
+  h+='<i style="background:'+(on?'#111111':'#FFFFFF')+'"></i>';}
+ $('qr').innerHTML=h;
+}
+var tt;
+function toast(msg){var t=$('toast');t.textContent=msg;t.className='toast on';clearTimeout(tt);tt=setTimeout(function(){t.className='toast';},1800);}
+function copyLink(){try{if(navigator.clipboard)navigator.clipboard.writeText('https://phou.app/a/mt-2026');}catch(e){}toast('링크를 복사했어요');}
+var origGo=go;go=function(n){if(n==='share'){var v=$('fname').value.trim();$('qname').textContent=v||'동아리 MT';$('tcover').innerHTML=scene(PAL[3],null,ALBUM_PHOTOS.newAlbum);}if(n==='album')renderAlbum();origGo(n);};
+
+/* 앨범 (초대 이후) */
+var justMade=null,cur=null,albTab='ai',sheetB=0,sheetRep=0;
+var BEST=[[1011,'선명도 · 밝기 기준 추천'],[1015,'풍경 디테일 기준 추천'],[64,'인물 선명도 기준 추천'],[1080,'색과 디테일 기준 추천']];
+var AV=[64,65,1005,1027];
+var CATS=[['장면별 묶음','24묶음','M8 4h10a2 2 0 0 1 2 2v10 M6 8h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z','scene'],
+ ['내가 나온 사진','32장','M4 8V6a2 2 0 0 1 2-2h2 M16 4h2a2 2 0 0 1 2 2v2 M20 16v2a2 2 0 0 1-2 2h-2 M8 20H6a2 2 0 0 1-2-2v-2 M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z M8 17c.8-1.6 2.2-2.5 4-2.5s3.2.9 4 2.5','me'],
+ ['사람별','4명','M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z M2.5 20c.9-3.2 3.4-5 6.5-5s5.6 1.8 6.5 5 M16 4.5a3.5 3.5 0 0 1 0 6.5 M18 15c2 .6 3.2 2.3 3.5 5',''],
+ ['장소별','3곳','M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z M12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z',''],
+ ['시간대별','5구간','M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17Z M12 7.5V12l3 2',''],
+ ['삭제 후보','48장','M4 7h16 M9.5 7V4.5h5V7 M6 7l1 13h10l1-13 M10 11v5 M14 11v5','']];
+var OLD_BUNDLES=[{name:'협재 바다 단체사진',ids:[1011,1012,1015,1016,1018,1019,1036,1039,1043],why:'모두 눈을 뜨고 있고 흔들림이 없어요'},
+ {name:'숙소 저녁 식사',ids:[1080,292,425,1050,1051,1053],why:'음식과 사람이 모두 잘 보여요'}];
+var BUNDLES=[
+ {name:'호수에서 카누 타기',ids:[1011,1011,1011,1011],why:'샘플 중 선명도와 밝기가 안정적인 컷을 추천했어요'},
+ {name:'전망대 풍경',ids:[1015,1015,1015],why:'샘플 중 풍경의 디테일이 선명한 컷을 추천했어요'},
+ {name:'인물 사진',ids:[64,64,64,64],why:'샘플 중 얼굴과 배경이 선명한 컷을 추천했어요'},
+ {name:'음식 사진',ids:[1080,1080,1080],why:'샘플 중 음식의 색과 디테일이 잘 보이는 컷을 추천했어요'},
+ {name:'산길 풍경',ids:[1016,1016,1016],why:'샘플 중 흔들림이 적은 컷을 추천했어요'},
+ {name:'해변 풍경',ids:[1019,1019,1019,1019],why:'샘플 중 밝기와 선명도가 안정적인 컷을 추천했어요'}];
+function bundlePhoto(B,i,w,h){var effects=['none','blur(2px)','brightness(.6)','blur(1px) brightness(1.3)'];return '<div style="position:absolute;inset:0;filter:'+effects[i%4]+'">'+scene(PAL[sheetB%6],null,pic(B.ids[i],w,h))+'</div>';}
+function ic(d,sz){return '<svg width="'+(sz||18)+'" height="'+(sz||18)+'" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>';}
+function grid(n,start){var h='<div class="photos">';for(var i=0;i<n;i++){var k=(i+start)%GRID_PHOTOS.length;h+='<div class="ph fill" style="cursor:default">'+scene(PAL[(k*5+1)%6],90+(k*73)%240,pic(GRID_PHOTOS[k],300,300))+'</div>';}return h+'</div>';}
+function renderAlbum(){
+ if(!cur)cur=albums[0];
+ var total=cur.total||parseInt(cur.count,10)||206,mem=cur.members||parseInt(cur.people,10)||1;
+ $('albTitle').textContent=cur.name;$('albSub').textContent=cur.date+' · 사진 '+total+'장';
+ var h='';for(var i=0;i<Math.min(mem,4);i++)h+='<span class="av"><img src="'+pic(AV[i],80,80)+'" alt=""></span>';
+ if(mem>4)h+='<span class="av">+'+(mem-4)+'</span>';$('avs').innerHTML=h;
+ $('memText').textContent=mem+'명이 함께하고 있어요';$('memSub').textContent=mem>1?'새 사진이 올라오면 AI가 다시 정리해요':'친구가 들어오면 여기에 보여요';
+ var tabs=[['ai','AI 추천'],['all','전체 '+total],['me','내가 올린 사진 32']];h='';
+ for(i=0;i<tabs.length;i++)h+='<button class="chip'+((albTab===tabs[i][0]||(['best','bundles','people','places','time','face'].indexOf(albTab)>=0&&tabs[i][0]==='ai'))?' sel':'')+'" onclick="albTab=\''+tabs[i][0]+'\';renderAlbum()">'+tabs[i][1]+'</button>';
+ $('albChips').innerHTML=h;
+ h='';
+ if(albTab==='ai'||albTab==='bundles'){
+  if(albTab==='ai')h+='<div><div class="row between"><h2>AI 추천 컷</h2><button class="link" style="font-size:13px" onclick="albumView(\'best\')">추천 컷 모두 보기</button></div><div class="hscroll" style="margin-top:8px">';
+  if(albTab==='ai')for(i=0;i<BEST.length;i++)h+='<div class="best fill">'+scene(PAL[i],null,pic(BEST[i][0],320,420))+'<span class="badge">추천 0'+(i+1)+'</span><div class="why">'+BEST[i][1]+'</div></div>';
+  if(albTab==='ai')h+='</div><p class="small" style="line-height:1.6;margin:8px 0 0">선명도와 밝기를 기준으로 추천해요. 취향에 맞는 사진은 직접 골라주세요.</p></div>';
+  h+='<div style="margin-top:32px;padding-top:24px;border-top:1px solid #E6E7EA"><div class="row between"><h2>비슷한 사진 · 대표 고르기</h2>'+(albTab==='ai'?'<button class="link" style="font-size:13px" onclick="toggleBundles()">'+(bundlesExpanded?'접기':'11묶음 펼치기')+'</button>':'<button class="link" onclick="albumView(\'ai\')">닫기</button>')+'</div><p class="small" style="margin:8px 0 20px;line-height:1.6">대표 사진을 누르면 묶음 안의 사진을 비교할 수 있어요.</p><div class="bundlegrid">';
+  for(i=0;i<(bundlesExpanded?BUNDLES.length:6);i++){var B=BUNDLES[i];h+='<button class="bundlethumb" aria-label="비슷한 사진 '+B.ids.length+'장, 묶음 '+(i+1)+' 비교하기" onclick="openSheet('+i+')"><span class="bundleimage fill">'+bundlePhoto(B,B.rep||0,240,240)+'<span class="photocount">'+ic('M8 4h10a2 2 0 0 1 2 2v10 M6 8h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2',14)+' '+B.ids.length+'장</span><span class="replabel">대표</span></span></button>';}
+  h+='</div><p class="small" style="margin:16px 0 0;line-height:1.5">시연용 샘플 · 같은 사진의 흐림과 밝기를 바꿔 비교해요.</p></div>';
+  h+='<div style="margin-top:40px;padding-top:24px;border-top:1px solid #E6E7EA"><h2>사진 찾아보기</h2><p class="small" style="margin:8px 0 6px">사람·장소·시간을 기준으로 찾아요</p><div class="cats">';
+  for(i=1;i<CATS.length-1;i++)h+='<button class="cat" onclick="catGo(\''+CATS[i][3]+'\',\''+CATS[i][0]+'\')"><span class="ci">'+ic(CATS[i][2])+'</span><b>'+CATS[i][0]+'</b><span class="v">'+CATS[i][1]+'</span></button>';
+  h+='</div></div>';
+  $('albSave').textContent='추천 컷 '+BEST.length+'장 저장하기';
+ }else if(albTab==='best'){
+  h+='<div class="row between"><h2>AI 추천 컷</h2></div><p class="small" style="margin:8px 0 16px">추천 사진 '+BEST.length+'장과 선정 이유를 모았어요</p><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">';
+  for(i=0;i<BEST.length;i++)h+='<div><div class="fill" style="position:relative;height:208px;border-radius:22px;overflow:hidden;background:#F2F3F5">'+scene(PAL[i],null,pic(BEST[i][0],320,420))+'<span class="badge">추천 0'+(i+1)+'</span></div><p style="font-size:13px;line-height:1.5;margin:8px 0 0">'+BEST[i][1]+'</p></div>';
+  h+='</div>';
+  $('albSave').textContent='추천 컷 '+BEST.length+'장 저장하기';
+ }else if(albTab==='all'){h+='<div class="small">친구들이 올린 사진까지 모두 모였어요</div>'+grid(total,0);$('albSave').textContent='전체 '+total+'장 저장하기';}
+ else if(albTab==='me'){h+='<div><h2>내가 올린 사진</h2><p class="small" style="margin:8px 0 20px">이 앨범에 내가 공유한 사진 32장이에요.</p></div>'+grid(32,0);$('albSave').textContent='내가 올린 사진 32장 저장하기';}
+ else if(albTab==='face'){h+='<div><h2>내가 나온 사진</h2><p class="small" style="margin:8px 0 20px">누가 올렸는지와 관계없이 내가 나온 사진을 모았어요 · 시연용 샘플</p></div>'+personGrid(32,0);$('albSave').textContent='내가 나온 사진 32장 저장하기';}
+ else if(['people','places','time'].indexOf(albTab)>=0){h=renderBrowse(albTab);}
+ $('albBody').innerHTML=h;
+}
+function catGo(k,name){albumView((k==='me'?'face':k)||({사람별:'people',장소별:'places',시간대별:'time'}[name]||'ai'));}
+function openSheet(i){sheetB=i;sheetRep=BUNDLES[i].rep||0;renderSheet();$('sheet').className='sheetwrap on';}
+function closeSheet(){$('sheet').className='sheetwrap';}
+function renderSheet(){var B=BUNDLES[sheetB];$('shTitle').textContent='비슷한 사진 '+B.ids.length+'장';$('shSub').textContent='비슷한 사진 '+B.ids.length+'장 중 '+(sheetRep===0?'AI 추천 · 선명한 샘플':'직접 선택 · 샘플 비교');
+ $('shRep').innerHTML=bundlePhoto(B,sheetRep,700,560)+'<span class="badge">'+(sheetRep===0?'AI 추천':'내가 고름')+'</span>'+(sheetRep===0?'<div class="why">'+B.why+'</div>':'');
+ var h='';for(var i=0;i<B.ids.length;i++)h+='<button class="th fill'+(i===sheetRep?' sel':'')+'" aria-label="사진 '+(i+1)+'" onclick="sheetRep='+i+';renderSheet()">'+bundlePhoto(B,i,120,120)+(i===0?'<span class="ai">AI</span>':'')+'</button>';
+ $('shThumbs').innerHTML=h;}
+
+
+var bundlesExpanded=false;
+function toggleBundles(){bundlesExpanded=!bundlesExpanded;var sc=$('s-album').querySelector('.scroll'),top=sc.scrollTop;renderAlbum();sc.scrollTop=top;}
+var browseIndex={people:0,places:0,time:0};
+var PERSON_IDS=[64,65,1005,1027];
+var PERSON_NAMES=['나','참여자 2','참여자 3','참여자 4'];
+var PERSON_COUNTS=[32,28,24,19];
+var PLACE_NAMES=['해변','숙소','전망대'];
+var PLACE_COUNTS=[42,38,48];
+var TIME_NAMES=['오전 8–11시','오전 11–오후 2시','오후 2–5시','오후 5–8시','오후 8–11시'];
+var TIME_COUNTS=[18,24,36,30,20];
+for(var bi=6;bi<11;bi++){var id=GRID_PHOTOS[(bi+2)%GRID_PHOTOS.length];BUNDLES.push({name:'비슷한 사진',ids:Array(4+bi%5).fill(id),why:'시연용 비교에서 선명도와 밝기가 안정적인 사진이에요'});}
+function albumView(v){albTab=v;renderAlbum();$('s-album').querySelector('.scroll').scrollTop=0;}
+function albumBack(){if(['best','bundles','people','places','time','face'].indexOf(albTab)>=0)albumView('ai');else go('home');}
+function personGrid(n,who){var h='<div class="photos">';var positions=['50% 50%','35% 35%','65% 45%','50% 25%','30% 60%','70% 30%'];for(var i=0;i<n;i++){var v=i%6;h+='<div class="ph fill portraitvariant" style="cursor:pointer"><img class="scene" src="'+pic(PERSON_IDS[who],720,900)+'" alt="참여자 '+(who+1)+' 인물 구도 샘플 '+(v+1)+'" style="object-position:'+positions[v]+';transform:scale('+[1,1.35,1.65,1.15,1.5,1.85][v]+') rotate('+[0,-4,3,0,5,-3][v]+'deg);filter:'+['none','brightness(1.1)','grayscale(1)','contrast(.9)','brightness(.85)','sepia(.15)'][v]+'"></div>';}return h+'</div>';}
+function selectBrowse(k,i){browseIndex[k]=i;renderAlbum();}
+function renderBrowse(k){var i=browseIndex[k],h='',names,counts;
+ if(k==='people'){names=PERSON_NAMES;counts=PERSON_COUNTS;h='<h2>사람별 사진</h2><p class="small" style="margin:8px 0 20px">사람을 선택하면 함께 나온 사진을 모아 보여줘요.</p><div class="browsepeople">';for(var j=0;j<names.length;j++)h+='<button class="personpick '+(i===j?'active':'')+'" aria-pressed="'+(i===j)+'" onclick="selectBrowse(\'people\','+j+')"><img src="'+pic(PERSON_IDS[j],100,100)+'" alt="'+names[j]+' 샘플 프로필"><b>'+names[j]+'</b><span>'+counts[j]+'장</span></button>';h+='</div>';}
+ if(k==='places'){names=PLACE_NAMES;counts=PLACE_COUNTS;h='<h2>장소별 사진</h2><p class="small" style="margin:8px 0 16px">지도에서 장소를 눌러 사진을 찾아보세요.</p><div class="samplemap"><svg viewBox="0 0 350 190" aria-hidden="true"><rect width="350" height="190" fill="#F2F3F5"/><path d="M0 130Q80 85 140 150T350 145V190H0Z" fill="#E6E7EA"/><path d="M20 0L170 190M0 70L350 35M90 190L300 0" stroke="white" stroke-width="12" fill="none"/></svg>';var coords=[[18,57],[47,28],[75,49]];for(var j=0;j<3;j++)h+='<button class="mapmarker '+(i===j?'active':'')+'" style="width:'+(48+counts[j]*.7)+'px;height:'+(48+counts[j]*.7)+'px;left:'+coords[j][0]+'%;top:'+coords[j][1]+'%" onclick="selectBrowse(\'places\','+j+')">'+names[j]+' · '+counts[j]+'</button>';h+='<span class="maplegend">원이 클수록 사진이 많아요</span><span class="mapcaption">시연용 지도 · 실제 촬영 위치가 아니에요</span></div>';}
+ if(k==='time'){names=TIME_NAMES;counts=TIME_COUNTS;h='<h2>시간대별 사진</h2><p class="small" style="margin:8px 0 20px">사진이 많이 찍힌 시간을 한눈에 살펴보세요.</p><div class="timechart">';for(var j=0;j<5;j++)h+='<button class="timebar '+(i===j?'active':'')+'" aria-label="'+names[j]+', '+counts[j]+'장" aria-pressed="'+(i===j)+'" onclick="selectBrowse(\'time\','+j+')"><span>'+counts[j]+'</span><i style="height:'+(counts[j]*2)+'px"></i><b>'+['08시','11시','14시','17시','20시'][j]+'</b></button>';h+='</div>';}
+ h+='<div class="row between" style="margin:24px 0 16px"><h2>'+names[i]+'</h2><span class="small">'+counts[i]+'장</span></div><p class="small" style="margin:0 0 16px">시연용 분류 · 실제 얼굴·위치·촬영 시간 분석은 연결 전이에요.</p>'+(k==='people'?personGrid(counts[i],i):grid(counts[i],i*5));$('albSave').textContent=names[i]+' 사진 '+counts[i]+'장 저장하기';return h;
+}
+
+var albumSelections={},visiblePhotos=[];
+function selectionKey(){return albums.indexOf(cur)+':'+albTab+':'+(browseIndex[albTab]||0);}
+function updateAlbumSave(){var set=albumSelections[selectionKey()]||{},n=Object.keys(set).length;var b=$('albSave');b.textContent=n?'선택한 '+n+'장 저장하기':(['ai','bundles'].indexOf(albTab)>=0?'사진을 선택해주세요':'전체 '+visiblePhotos.length+'장 저장하기');b.disabled=!n&&['ai','bundles'].indexOf(albTab)>=0;}
+function toggleAlbumPhoto(i){var key=selectionKey(),set=albumSelections[key]||(albumSelections[key]={});if(set[i])delete set[i];else set[i]=true;applyPhotoSelection();}
+function applyPhotoSelection(){var set=albumSelections[selectionKey()]||{};visiblePhotos.forEach(function(el,i){el.classList.toggle('photochosen',!!set[i]);el.setAttribute('aria-pressed',!!set[i]);el.querySelector('.selectcheck').textContent=set[i]?'✓':'';});var ctl=$('albumSelectAll');if(ctl){var all=visiblePhotos.length&&Object.keys(set).length===visiblePhotos.length;ctl.textContent=all?(albTab==='ai'?'추천 선택 해제':'전체 선택 해제'):(albTab==='ai'?'추천 4장 선택':'전체 선택');}updateAlbumSave();}
+function selectAlbumAll(){var key=selectionKey(),set=albumSelections[key]||{};albumSelections[key]=Object.keys(set).length===visiblePhotos.length?{}:Object.fromEntries(visiblePhotos.map(function(el,i){return [i,true];}));applyPhotoSelection();}
+function saveAlbumSelection(){var n=Object.keys(albumSelections[selectionKey()]||{}).length||visiblePhotos.length;toast(n+'장 저장을 요청했어요 · 시연용');}
+var baseRenderAlbum=renderAlbum;
+renderAlbum=function(){baseRenderAlbum();var body=$('albBody');visiblePhotos=Array.from(body.querySelectorAll('.photos .ph,.best'));if(albTab==='best')visiblePhotos=Array.from(body.querySelectorAll('.badge')).map(function(el){return el.parentNode;});
+visiblePhotos.forEach(function(el,i){el.style.cursor='pointer';el.setAttribute('role','button');el.setAttribute('tabindex','0');el.setAttribute('aria-label','사진 '+(i+1)+' 선택');el.insertAdjacentHTML('beforeend','<span class="selectcheck"></span>');el.onclick=function(){toggleAlbumPhoto(i);};el.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleAlbumPhoto(i);}};});
+if(visiblePhotos.length&&albTab!=='ai'&&albTab!=='best'){var controls='<div class="selectiontools"><span class="small">'+(albTab==='ai'?'추천 컷 4장 중 선택':'사진을 눌러 선택하세요')+'</span><button id="albumSelectAll" onclick="selectAlbumAll()">'+(albTab==='ai'?'추천 4장 선택':'전체 선택')+'</button></div>';if(albTab==='ai'){body.querySelector('.hscroll').insertAdjacentHTML('beforebegin',controls);}else body.insertAdjacentHTML('afterbegin',controls);}applyPhotoSelection();};
+
+var importItems=[],showExcluded=false,albumTrail=[],lastAlbumContext='';
+function initImport(){showExcluded=false;importItems=[];var config=ai?[true,true,true,true,false]:opts.map(function(o){return o[2];});var reasons=[['흐릿함',5,config[1]],['스크린샷',4,config[3]],['영상',3,config[4]],['비슷한 사진',6,config[2]],['나만 나온 사진',2,config[0]]],excluded=[];reasons.forEach(function(r){if(r[2])for(var n=0;n<r[1];n++)excluded.push(r[0]);});for(var i=0;i<86;i++)importItems.push({src:pic(GRID_PHOTOS[i%18],300,300),reason:excluded[i]||'',selected:!excluded[i]});off={};renderPhotos();}
+countSel=function(){return importItems.filter(function(p){return p.selected;}).length;};
+renderPhotos=function(){if(!importItems.length)return;var h='';importItems.forEach(function(p,i){if(showExcluded?!p.reason:!!p.reason)return;h+='<button class="ph'+(p.selected?'':' off')+'" aria-label="사진 '+(i+1)+(p.reason?', '+p.reason:'')+'" aria-pressed="'+p.selected+'" onclick="importItems['+i+'].selected=!importItems['+i+'].selected;renderPhotos()"><img class="scene" src="'+p.src+'" alt="사진 후보 '+(i+1)+'"><span class="ck">'+CHECK+'</span>'+(p.reason?'<span class="importreason">'+p.reason+'</span>':'')+'</button>';});$('photos').innerHTML=h;var n=countSel();$('sel').textContent=n;$('qcount').textContent=n;$('sharebtn').textContent='사진 '+n+'장으로 앨범 만들기';$('sharebtn').disabled=!n;$('foundTitle').textContent='사진 '+importItems.length+'장을 찾았어요';var ex=importItems.filter(function(p){return p.reason;}).length;$('foundSub').textContent='기간 내 사진 '+importItems.length+'장 중 '+ex+'장을 공유 후보에서 제외했어요';var reasons={};importItems.forEach(function(p){if(p.reason)reasons[p.reason]=(reasons[p.reason]||0)+1;});$('excludeTags').innerHTML=Object.keys(reasons).map(function(k){return '<span class="tag">'+k+' '+reasons[k]+'</span>';}).join('');$('excludedToggle').textContent=showExcluded?'공유 후보로 돌아가기':'제외된 사진 '+ex+'장 보기';};
+function toggleExcluded(){showExcluded=!showExcluded;renderPhotos();}
+$('extraPhotos').addEventListener('change',function(e){Array.from(e.target.files).forEach(function(file){importItems.push({src:URL.createObjectURL(file),reason:'',selected:true});});showExcluded=false;renderPhotos();e.target.value='';});
+var baseStartImport=startImport;startImport=function(){initImport();baseStartImport();};
+function eventDate(){return $('eventStart').value.replace('T',' ')+' – '+$('eventEnd').value.replace('T',' ');}
+var baseUpdName=updName;updName=function(){baseUpdName();var invalid=$('eventEnd').value<=$('eventStart').value;$('next1').disabled=!$('fname').value.trim()||invalid;$('dateError').textContent=invalid?'종료는 시작 이후로 설정해주세요.':'';};
+$('fname').addEventListener('input',updName);$('eventStart').addEventListener('change',updName);$('eventEnd').addEventListener('change',updName);
+var baseGo=go;go=function(n){if(n==='create'&&document.querySelector('.screen.on').id==='s-home'){justMade=null;importItems=[];}baseGo(n);if(n==='share'){$('qdate').textContent=eventDate();$('qname').textContent=cur&&justMade?cur.name:($('fname').value.trim()||'새 앨범');}if(n==='album'){if(cur&&cur.isNew)cur.date=eventDate();renderAlbum();}};
+var baseAlbumRender=renderAlbum;renderAlbum=function(){var context=albums.indexOf(cur)+':'+albTab+':'+(browseIndex[albTab]||0);if(context!==lastAlbumContext){if(lastAlbumContext&&lastAlbumContext.split(':')[0]===context.split(':')[0])albumTrail.push({tab:lastAlbumContext.split(':')[1],index:Number(lastAlbumContext.split(':')[2])});lastAlbumContext=context;}baseAlbumRender();};
+albumBack=function(){if($('sheet').classList.contains('on')){closeSheet();return;}if(albumTrail.length){var previous=albumTrail.pop();albTab=previous.tab;if(browseIndex[albTab]!==undefined)browseIndex[albTab]=previous.index;lastAlbumContext=albums.indexOf(cur)+':'+albTab+':'+(browseIndex[albTab]||0);renderAlbum();$('s-album').querySelector('.scroll').scrollTop=0;}else go('home');};
+var baseOpenAlbum=openAlbum;openAlbum=function(i){albumTrail=[];lastAlbumContext='';baseOpenAlbum(i);};
+
+function renderQR(){$("qr").innerHTML='<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE svg\n  PUBLIC \'-//W3C//DTD SVG 1.0//EN\'\n  \'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\'>\n<svg width="160" height="160" preserveAspectRatio="xMinYMin meet" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">\n\t<title>...</title>\n\t<desc>...</desc>\n\t<clipPath id="clip">\n\t\t<rect x="0" y="0" width="160" height="160"/>\n\t</clipPath>\n\t<g id="group" transform="scale(1,-1) translate(0,-160)" style="clip-path: url(#clip)">\n\t\t<g transform=" matrix(1.763889,0,0,1.763889,0,0)">\n\t\t\t<g transform="">\n\t\t\t\t<rect x="0" y="0" width="90.70866141732284" height="90.70866141732284" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: none; fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="76.96492483894059" width="19.241231209735147" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="32.984967788117395" y="76.96492483894059" width="10.9949892627058" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="46.72870436649964" y="76.96492483894059" width="5.4974946313529" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="60.472440944881896" y="76.96492483894059" width="19.241231209735147" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="74.21617752326415" width="2.74874731567645" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="74.21617752326415" width="2.74874731567645" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="41.23120973514675" y="74.21617752326415" width="10.9949892627058" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="54.974946313528996" y="74.21617752326415" width="2.7487473156764466" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="60.472440944881896" y="74.21617752326415" width="2.7487473156764466" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="76.96492483894059" y="74.21617752326415" width="2.7487473156764537" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="71.4674302075877" width="2.74874731567645" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="16.492483894058697" y="71.4674302075877" width="8.24624194702935" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="71.4674302075877" width="2.74874731567645" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="35.73371510379385" y="71.4674302075877" width="2.7487473156764466" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="41.23120973514675" y="71.4674302075877" width="2.7487473156764466" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="46.72870436649964" y="71.4674302075877" width="5.4974946313529" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="60.472440944881896" y="71.4674302075877" width="2.7487473156764466" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="65.96993557623479" y="71.4674302075877" width="8.246241947029347" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="76.96492483894059" y="71.4674302075877" width="2.7487473156764537" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="68.71868289191124" width="2.74874731567645" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="16.492483894058697" y="68.71868289191124" width="8.24624194702935" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="68.71868289191124" width="2.74874731567645" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="38.482462419470295" y="68.71868289191124" width="5.4974946313529" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="46.72870436649964" y="68.71868289191124" width="10.9949892627058" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="60.472440944881896" y="68.71868289191124" width="2.7487473156764466" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="65.96993557623479" y="68.71868289191124" width="8.246241947029347" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="76.96492483894059" y="68.71868289191124" width="2.7487473156764537" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="65.9699355762348" width="2.74874731567645" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="16.492483894058697" y="65.9699355762348" width="8.24624194702935" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="65.9699355762348" width="2.74874731567645" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="38.482462419470295" y="65.9699355762348" width="13.743736578382247" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="60.472440944881896" y="65.9699355762348" width="2.7487473156764466" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="65.96993557623479" y="65.9699355762348" width="8.246241947029347" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="76.96492483894059" y="65.9699355762348" width="2.7487473156764537" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="63.22118826055835" width="2.74874731567645" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="63.22118826055835" width="2.74874731567645" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="35.73371510379385" y="63.22118826055835" width="2.7487473156764466" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="41.23120973514675" y="63.22118826055835" width="2.7487473156764466" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="46.72870436649964" y="63.22118826055835" width="5.4974946313529" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="54.974946313528996" y="63.22118826055835" width="2.7487473156764466" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="60.472440944881896" y="63.22118826055835" width="2.7487473156764466" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="76.96492483894059" y="63.22118826055835" width="2.7487473156764537" height="2.7487473156764537" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="60.472440944881896" width="19.241231209735147" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="32.984967788117395" y="60.472440944881896" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="38.482462419470295" y="60.472440944881896" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="43.979957050823195" y="60.472440944881896" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="49.477451682176095" y="60.472440944881896" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="54.974946313528996" y="60.472440944881896" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="60.472440944881896" y="60.472440944881896" width="19.241231209735147" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="32.984967788117395" y="57.72369362920545" width="5.4974946313529" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="43.979957050823195" y="57.72369362920545" width="5.4974946313529" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="54.974946313528996" width="5.4974946313528985" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="19.241231209735147" y="54.974946313528996" width="5.4974946313529" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="54.974946313528996" width="2.74874731567645" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="35.73371510379385" y="54.974946313528996" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="43.979957050823195" y="54.974946313528996" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="49.477451682176095" y="54.974946313528996" width="5.4974946313529" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="60.472440944881896" y="54.974946313528996" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="76.96492483894059" y="54.974946313528996" width="2.7487473156764537" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="21.989978525411598" y="52.22619899785255" width="2.74874731567645" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="30.236220472440948" y="52.22619899785255" width="5.4974946313529" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="38.482462419470295" y="52.22619899785255" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="46.72870436649964" y="52.22619899785255" width="8.246241947029347" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="63.22118826055834" y="52.22619899785255" width="13.743736578382247" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="49.477451682176095" width="2.74874731567645" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="16.492483894058697" y="49.477451682176095" width="2.74874731567645" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="21.989978525411598" y="49.477451682176095" width="10.994989262705797" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="35.73371510379385" y="49.477451682176095" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="43.979957050823195" y="49.477451682176095" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="52.22619899785254" y="49.477451682176095" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="57.72369362920544" y="49.477451682176095" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="65.96993557623479" y="49.477451682176095" width="5.497494631352893" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="76.96492483894059" y="49.477451682176095" width="2.7487473156764537" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="13.743736578382249" y="46.72870436649965" width="2.7487473156764484" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="19.241231209735147" y="46.72870436649965" width="8.246241947029347" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="32.984967788117395" y="46.72870436649965" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="49.477451682176095" y="46.72870436649965" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="54.974946313528996" y="46.72870436649965" width="8.246241947029347" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="68.71868289191124" y="46.72870436649965" width="10.9949892627058" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="16.492483894058697" y="43.9799570508232" width="5.4974946313529" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="43.9799570508232" width="13.74373657838225" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="43.979957050823195" y="43.9799570508232" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="52.22619899785254" y="43.9799570508232" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="60.472440944881896" y="43.9799570508232" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="76.96492483894059" y="43.9799570508232" width="2.7487473156764537" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="41.23120973514675" width="13.743736578382249" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="38.482462419470295" y="41.23120973514675" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="43.979957050823195" y="41.23120973514675" width="5.4974946313529" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="52.22619899785254" y="41.23120973514675" width="5.4974946313529" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="65.96993557623479" y="41.23120973514675" width="2.7487473156764537" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="74.21617752326414" y="41.23120973514675" width="2.7487473156764537" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="38.4824624194703" width="8.246241947029349" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="24.738725841088048" y="38.4824624194703" width="8.246241947029347" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="38.482462419470295" y="38.4824624194703" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="43.979957050823195" y="38.4824624194703" width="10.9949892627058" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="57.72369362920544" y="38.4824624194703" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="65.96993557623479" y="38.4824624194703" width="13.743736578382254" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="35.73371510379385" width="2.74874731567645" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="16.492483894058697" y="35.73371510379385" width="10.994989262705797" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="35.73371510379385" y="35.73371510379385" width="8.246241947029347" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="49.477451682176095" y="35.73371510379385" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="54.974946313528996" y="35.73371510379385" width="5.4974946313529" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="63.22118826055834" y="35.73371510379385" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="68.71868289191124" y="35.73371510379385" width="5.497494631352893" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="76.96492483894059" y="35.73371510379385" width="2.7487473156764537" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="32.9849677881174" width="2.74874731567645" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="32.9849677881174" width="2.74874731567645" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="38.482462419470295" y="32.9849677881174" width="5.4974946313529" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="46.72870436649964" y="32.9849677881174" width="21.9899785254116" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="71.4674302075877" y="32.9849677881174" width="5.497494631352893" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="32.984967788117395" y="30.236220472440948" width="5.4974946313529" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="43.979957050823195" y="30.236220472440948" width="5.4974946313529" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="54.974946313528996" y="30.236220472440948" width="2.7487473156764466" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="65.96993557623479" y="30.236220472440948" width="2.7487473156764537" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="71.4674302075877" y="30.236220472440948" width="5.497494631352893" height="2.7487473156764466" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="27.4874731567645" width="19.241231209735147" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="41.23120973514675" y="27.4874731567645" width="8.246241947029347" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="54.974946313528996" y="27.4874731567645" width="2.7487473156764466" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="60.472440944881896" y="27.4874731567645" width="2.7487473156764466" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="65.96993557623479" y="27.4874731567645" width="2.7487473156764537" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="76.96492483894059" y="27.4874731567645" width="2.7487473156764537" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="24.738725841088055" width="2.74874731567645" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="24.738725841088055" width="2.74874731567645" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="35.73371510379385" y="24.738725841088055" width="13.743736578382247" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="52.22619899785254" y="24.738725841088055" width="5.4974946313529" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="65.96993557623479" y="24.738725841088055" width="2.7487473156764537" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="21.9899785254116" width="2.74874731567645" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="16.492483894058697" y="21.9899785254116" width="8.24624194702935" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="21.9899785254116" width="2.74874731567645" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="32.984967788117395" y="21.9899785254116" width="2.7487473156764466" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="38.482462419470295" y="21.9899785254116" width="2.7487473156764466" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="52.22619899785254" y="21.9899785254116" width="16.4924838940587" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="19.241231209735147" width="2.74874731567645" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="16.492483894058697" y="19.241231209735147" width="8.24624194702935" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="19.241231209735147" width="2.74874731567645" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="32.984967788117395" y="19.241231209735147" width="5.4974946313529" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="41.23120973514675" y="19.241231209735147" width="5.4974946313529" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="57.72369362920544" y="19.241231209735147" width="5.4974946313529" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="74.21617752326414" y="19.241231209735147" width="5.497494631352893" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="16.492483894058708" width="2.74874731567645" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="16.492483894058697" y="16.492483894058708" width="8.24624194702935" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="16.492483894058708" width="2.74874731567645" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="38.482462419470295" y="16.492483894058708" width="13.743736578382247" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="54.974946313528996" y="16.492483894058708" width="2.7487473156764466" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="65.96993557623479" y="16.492483894058708" width="13.743736578382254" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="13.743736578382254" width="2.74874731567645" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="27.487473156764498" y="13.743736578382254" width="2.74874731567645" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="32.984967788117395" y="13.743736578382254" width="2.7487473156764466" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="38.482462419470295" y="13.743736578382254" width="8.246241947029347" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="60.472440944881896" y="13.743736578382254" width="8.246241947029347" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="71.4674302075877" y="13.743736578382254" width="8.246241947029347" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="10.994989262705799" y="10.9949892627058" width="19.241231209735147" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="32.984967788117395" y="10.9949892627058" width="2.7487473156764466" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="38.482462419470295" y="10.9949892627058" width="5.4974946313529" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="49.477451682176095" y="10.9949892627058" width="8.246241947029347" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="60.472440944881896" y="10.9949892627058" width="2.7487473156764466" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="68.71868289191124" y="10.9949892627058" width="2.7487473156764537" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t\t<rect x="76.96492483894059" y="10.9949892627058" width="2.7487473156764537" height="2.74874731567645" style="stroke: none; stroke-linecap: butt; stroke-width: 0; fill: rgb(0%,0%,0%); fill-rule: evenodd;"/>\n\t\t\t</g>\n\t\t</g>\n\t</g>\n</svg>\n';}
+
+albumBack=function(){if($('sheet').classList.contains('on')){closeSheet();return;}if(['best','bundles','people','places','time','face'].indexOf(albTab)>=0){albumTrail=[];lastAlbumContext='';albumView('ai');}else go('home');};
+var finalRenderAlbum=renderAlbum;renderAlbum=function(){finalRenderAlbum();var back=$('s-album').querySelector('.hdr .iconbtn');back.style.width='auto';back.style.padding='0 14px';back.style.gap='6px';back.innerHTML=BACK+'<span style="font-size:12px">'+(['best','bundles','people','places','time','face'].indexOf(albTab)>=0?'앨범':'홈')+'</span>';back.setAttribute('aria-label',['best','bundles','people','places','time','face'].indexOf(albTab)>=0?'앨범으로 돌아가기':'홈으로 돌아가기');};
+
+var viewScroll={},screenScroll={},renderedView='',detailParent='ai',inviteReturn=null;
+function albumViewKey(){return 'album:'+albums.indexOf(cur)+':'+albTab+':'+(browseIndex[albTab]||0);}
+function rememberAlbumScroll(){var sc=$('s-album').querySelector('.scroll');if(renderedView)viewScroll[renderedView]=sc.scrollTop;}
+$('s-album').querySelector('.scroll').addEventListener('scroll',function(){if(renderedView)viewScroll[renderedView]=this.scrollTop;});
+var stableRender=renderAlbum;renderAlbum=function(){rememberAlbumScroll();var key=albumViewKey(),top=viewScroll[key]||0;stableRender();renderedView=key;$('s-album').querySelector('.scroll').scrollTop=top;};
+albumView=function(v){rememberAlbumScroll();if(['best','bundles','people','places','time','face'].indexOf(v)>=0&&['ai','all','me'].indexOf(albTab)>=0)detailParent=albTab;albTab=v;renderAlbum();};
+selectBrowse=function(k,i){rememberAlbumScroll();browseIndex[k]=i;renderAlbum();};
+albumBack=function(){if($('sheet').classList.contains('on')){closeSheet();return;}if(['best','bundles','people','places','time','face'].indexOf(albTab)>=0)albumView(detailParent);else go('home');};
+var navigationGo=go;go=function(n){var active=document.querySelector('.screen.on');if(active){var current=active.id.replace('s-',''),sc=active.querySelector('.scroll');if(sc)screenScroll[current]=sc.scrollTop;if(current==='album')rememberAlbumScroll();if(n==='share'&&current==='album')inviteReturn={album:cur,tab:albTab};else if(n==='share')inviteReturn=null;}var targetKey=n==='album'?albumViewKey():null,targetTop=targetKey?(viewScroll[targetKey]||0):0;navigationGo(n);if(targetKey)viewScroll[targetKey]=targetTop;if(n==='share'&&inviteReturn){$('qname').textContent=inviteReturn.album.name;$('qdate').textContent=inviteReturn.album.date;$('qcount').textContent=inviteReturn.album.total||parseInt(inviteReturn.album.count,10);}if(n==='album'){$('s-album').querySelector('.scroll').scrollTop=viewScroll[albumViewKey()]||0;}else if(n==='home'){$('s-home').querySelector('.scroll').scrollTop=screenScroll.home||0;}};
+openAlbum=function(i){rememberAlbumScroll();cur=albums[i];albTab='ai';detailParent='ai';albumTrail=[];lastAlbumContext='';go('album');};
+var finishCreation=finish;finish=function(){if(inviteReturn){cur=inviteReturn.album;albTab=inviteReturn.tab;inviteReturn=null;go('album');return;}finishCreation();};
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('sheet').classList.contains('on'))closeSheet();});
+renderHome();renderOpts();renderPhotos();renderQR();
+var scs=document.querySelectorAll('.scroll');for(var j=0;j<scs.length;j++){(function(el){el.addEventListener('scroll',function(){var h=el.querySelector('.hdr');if(h)h.className='hdr'+(el.scrollTop>4?' lift':'');});})(scs[j]);}
+</script>
+</body>
+</html>
