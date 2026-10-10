@@ -1,5 +1,8 @@
 [README 1010 마지막.md](https://github.com/user-attachments/files/33281124/README.1010.md)
 # PHOU
+- GitHub 레포: https://github.com/memememin/phou-prototype
+- 배포 사이트: https://memememin.github.io/phou-prototype/
+- 
 ### 이벤트 기반 사진 공유 · 5주차 워킹 프로토타입
 
 **흩어진 사진을 모으고, AI 추천을 비교하며, 공유할 사진은 사용자가 결정합니다.**
@@ -8,7 +11,7 @@
 
 | 현재 결과물 | 제출 준비 | 제작일 |
 | :--- | :--- | :--- |
-| 단일 HTML 프로토타입 | GitHub 업로드·배포 예정 | 2026.10.10 |
+| 단일 HTML 프로토타입 | GitHub 업로드·배포 완료 | 2026.10.10 |
 
 > **현재 범위:** 화면·선택·탐색 동작을 구현했습니다. 실제 AI 분석·기기 사진 검색·저장·SNS 공유는 시연 단계입니다.
 
